@@ -8,15 +8,13 @@ Timer:
 	mov timerArg, r0
 
 	timerBaseLower .req r3
-	@timerBaseUpper .req r4
 	bl GetTimeStamp
 	mov timerBaseLower, r0
-	@mov timerBaseUpper, r1
 
 	@ Loop until the timerArg micrseconds have passed
 	waitLoop$: 
 		bl GetTimeStamp
-		difference .req r4
+		difference .req r1						@ If converted to 8 bytes, this cannot overwrite r1
 		sub  difference, r0, timerBaseLower
 		cmp  difference, timerArg
 		.unreq difference

@@ -5,6 +5,8 @@ GetGpioAddress:                 @ Returns the address of the GPIO pins
     mov pc,lr
     .unreq gpioAddr
 
+@ Sets a fucntion for a GPIO pin, by passing the pin number in r0 
+@ and it's function into r1
 .globl SetGpioFunction
 SetGpioFunction:
     pinNum .req r0
@@ -32,9 +34,10 @@ SetGpioFunction:
 
     mask .req r3
     mov mask,  #111                   @ r3 is the mask 
-    lsl mask, pinNum                      
+    lsl mask, pinNum  
+    .unreq pinNum                    
     mvn mask, mask
-    oldFunc .req r4
+    oldFunc .req r2
     ldr oldFunc, [gpioAddr]
     and oldFunc, mask          @ Zeroes out old fuction bits
     orr pinFunc, oldFunc       @ Adds new function bits
@@ -42,13 +45,13 @@ SetGpioFunction:
     str pinFunc, [gpioAddr]
     .unreq gpioAddr
     .unreq pinFunc
-    .unreq pinNum
     .unreq mask
     .unreq oldFunc
 
     pop {pc}
 
-
+@ Function to set the arguments of a gpio pin. 
+@ Pass the pin in r0 and the value of the arg in r1
 .globl SetGpio
 SetGpio:
     pinNum .req r0                  @ Create a register alias

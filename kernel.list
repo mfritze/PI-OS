@@ -29,9 +29,9 @@ Disassembly of section .text:
     803c:	e3a0306f 	mov	r3, #111	; 0x6f
     8040:	e1a03213 	lsl	r3, r3, r2
     8044:	e1e03003 	mvn	r3, r3
-    8048:	e5904000 	ldr	r4, [r0]
-    804c:	e0044003 	and	r4, r4, r3
-    8050:	e1811004 	orr	r1, r1, r4
+    8048:	e5902000 	ldr	r2, [r0]
+    804c:	e0022003 	and	r2, r2, r3
+    8050:	e1811002 	orr	r1, r1, r2
     8054:	e5801000 	str	r1, [r0]
     8058:	e8bd8000 	pop	{pc}
 
@@ -58,44 +58,44 @@ Disassembly of section .text:
     80a0:	e3a00010 	mov	r0, #16	; 0x10
     80a4:	e3a01001 	mov	r1, #1	; 0x1
     80a8:	ebffffd7 	bl	800c <SetGpioFunction>
+    80ac:	e59f4030 	ldr	r4, [pc, #48]	; 80e4 <morseLoop$+0x2c>
+    80b0:	e5944000 	ldr	r4, [r4]
+    80b4:	e3a05000 	mov	r5, #0	; 0x0
 
-000080ac <turnOn$>:
-    80ac:	e3a00010 	mov	r0, #16	; 0x10
-    80b0:	e3a01000 	mov	r1, #0	; 0x0
-    80b4:	ebffffe8 	bl	805c <SetGpio>
-    80b8:	e3a00a7a 	mov	r0, #499712	; 0x7a000
-    80bc:	e3800e12 	orr	r0, r0, #288	; 0x120
-    80c0:	eb000006 	bl	80e0 <Timer>
+000080b8 <morseLoop$>:
+    80b8:	e3a00010 	mov	r0, #16	; 0x10
+    80bc:	e3a01001 	mov	r1, #1	; 0x1
+    80c0:	e1a01511 	lsl	r1, r1, r5
+    80c4:	e0011004 	and	r1, r1, r4
+    80c8:	ebffffe3 	bl	805c <SetGpio>
+    80cc:	e3a00a3d 	mov	r0, #249856	; 0x3d000
+    80d0:	e3800090 	orr	r0, r0, #144	; 0x90
+    80d4:	eb000003 	bl	80e8 <Timer>
+    80d8:	e2855001 	add	r5, r5, #1	; 0x1
+    80dc:	e205501f 	and	r5, r5, #31	; 0x1f
+    80e0:	eafffff4 	b	80b8 <morseLoop$>
+    80e4:	00008128 	.word	0x00008128
 
-000080c4 <turnOff$>:
-    80c4:	e3a00010 	mov	r0, #16	; 0x10
-    80c8:	e3a01001 	mov	r1, #1	; 0x1
-    80cc:	ebffffe2 	bl	805c <SetGpio>
-    80d0:	e3a00a7a 	mov	r0, #499712	; 0x7a000
-    80d4:	e3800e12 	orr	r0, r0, #288	; 0x120
-    80d8:	eb000000 	bl	80e0 <Timer>
-    80dc:	eafffff2 	b	80ac <turnOn$>
+000080e8 <Timer>:
+    80e8:	e92d4000 	push	{lr}
+    80ec:	e1a02000 	mov	r2, r0
+    80f0:	eb000007 	bl	8114 <GetTimeStamp>
+    80f4:	e1a03000 	mov	r3, r0
 
-000080e0 <Timer>:
-    80e0:	e92d4000 	push	{lr}
-    80e4:	e1a02000 	mov	r2, r0
-    80e8:	eb000007 	bl	810c <GetTimeStamp>
-    80ec:	e1a03000 	mov	r3, r0
+000080f8 <waitLoop$>:
+    80f8:	eb000005 	bl	8114 <GetTimeStamp>
+    80fc:	e0401003 	sub	r1, r0, r3
+    8100:	e1510002 	cmp	r1, r2
+    8104:	9afffffb 	bls	80f8 <waitLoop$>
+    8108:	e8bd8000 	pop	{pc}
 
-000080f0 <waitLoop$>:
-    80f0:	eb000005 	bl	810c <GetTimeStamp>
-    80f4:	e0404003 	sub	r4, r0, r3
-    80f8:	e1540002 	cmp	r4, r2
-    80fc:	9afffffb 	bls	80f0 <waitLoop$>
-    8100:	e8bd8000 	pop	{pc}
+0000810c <GetSystemTimerAddress>:
+    810c:	e59f0010 	ldr	r0, [pc, #16]	; 8124 <GetTimeStamp+0x10>
+    8110:	e1a0f00e 	mov	pc, lr
 
-00008104 <GetSystemTimerAddress>:
-    8104:	e59f0010 	ldr	r0, [pc, #16]	; 811c <GetTimeStamp+0x10>
-    8108:	e1a0f00e 	mov	pc, lr
-
-0000810c <GetTimeStamp>:
-    810c:	e92d4000 	push	{lr}
-    8110:	ebfffffb 	bl	8104 <GetSystemTimerAddress>
-    8114:	e1c000d4 	ldrd	r0, [r0, #4]
-    8118:	e8bd8000 	pop	{pc}
-    811c:	20003000 	.word	0x20003000
+00008114 <GetTimeStamp>:
+    8114:	e92d4000 	push	{lr}
+    8118:	ebfffffb 	bl	810c <GetSystemTimerAddress>
+    811c:	e1c000d4 	ldrd	r0, [r0, #4]
+    8120:	e8bd8000 	pop	{pc}
+    8124:	20003000 	.word	0x20003000
