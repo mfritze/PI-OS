@@ -4,39 +4,55 @@ _start:
     b main
 
 .section .text
-
 main:
     mov sp, #0x8000             @ The default load address 
 
-    mov r0, #16
-    mov r1, #1
-    bl SetGpioFunction
+    mov r0, #1024
+    mov r1, #768
+    mov r2, #16
+    bl InitializeFrameBuffer
 
-    ptrn .req r4
-    ldr ptrn, =pattern
-    ldr ptrn, [ptrn]    
-    index .req r5
-    mov index, #0
+    teq r0, #0
+    bne gpuOK$
 
-    morseLoop$:
-        mov r0, #16
-        mov r1, #1
-        lsl r1, index
-        and r1, ptrn
-        bl SetGpio
+    bl TurnOnLed
+    error$:
+        b error$
 
-        @ To load 500000, you have to do 8 bits at time, because of ARMv6 limitations to 32-bit instructions
-        mov r0, #0x0003d000
-        orr r0, #0x00000090
-        bl Timer
+    gpuOK$:
+        frameBufferInfoAddr .req r4
+        mov frameBufferInfoAddr, r0
 
-        add index, #1
-        and index, #0b11111
-        b morseLoop$
+    render$:
+        fbAddr .req r3
+        ldr fbAddr, [frameBufferInfoAddr, #32]
 
+        colour .req r0
+        y .req r1
+        mov y, #768
 
+        drawRow$:
+            x .req r2
+            mov x, #1024
 
-.section .data
-.align 2            @ Ensures that address of the next line is a multiple of 2^(n = 2). Important since ldr works with 32-bit words
-pattern:
-    .int 0b11111111101010100010001000101010     @Arbitrary binary sequence to represent morse code, or blinking (S O S in this case)
+            drawPixel$:
+                strh colour, [fbAddr]
+                add fbAddr, #2
+                sub x, #1
+                teq x, #0
+                bne drawPixel$
+
+            .unreq x
+            sub y, #1
+            add colour, #1
+            teq y, #0
+            bne drawRow$
+
+        .unreq y
+        .unreq fbAddr
+        .unreq colour
+        bl FlashLed
+        b render$
+
+    .unreq frameBufferInfoAddr
+
